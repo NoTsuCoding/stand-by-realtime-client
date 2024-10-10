@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { Kanit, Roboto } from 'next/font/google';
+import { EventProvider } from '@/hooks/EventProvider/EventProvider';
 
 const kanit = Kanit({
     subsets: ['thai'],
@@ -25,9 +26,11 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${kanit.className} ${roboto.className} antialiased`}>
-                <AntdRegistry>{children}</AntdRegistry>
-            </body>
+            <EventProvider>
+                <body className={`${kanit.className} ${roboto.className} antialiased`}>
+                    <AntdRegistry>{children}</AntdRegistry>
+                </body>
+            </EventProvider>
         </html>
     );
 }

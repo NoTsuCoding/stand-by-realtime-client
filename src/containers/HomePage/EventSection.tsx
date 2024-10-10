@@ -1,46 +1,44 @@
 'use client';
 
 import BigButton from '@/components/BigButton';
-import EventModal from '@/components/EventModal';
-import { standbyIO } from '@/socket';
+import CreateEventModal from '@/components/CreateEventModal';
+import JoinEventModal from '@/components/JoinEventModal';
 import { Flex } from 'antd';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 const EventSection: React.FC = () => {
-    const [eventModalOpen, setEventModalOpen] = useState<boolean>(false);
-
-    const router = useRouter();
-
-    const onNewEvent = (data: { code: string }) => {
-        router.push(`/room/${data.code}`);
-    };
-
-    useEffect(() => {
-        standbyIO.on('new_event', onNewEvent);
-
-        return () => {
-            standbyIO.off('new_event', onNewEvent);
-        };
-    }, []);
+    const [eventCreateModalOpen, setEventCreateModalOpen] = useState<boolean>(false);
+    const [eventJoinModalOpen, setEventJoinModalOpen] = useState<boolean>(false);
 
     return (
         <>
-            <EventModal
-                open={eventModalOpen}
-                onClose={() => setEventModalOpen(false)}
-                onCancel={() => setEventModalOpen(false)}
-                onOk={() => setEventModalOpen(false)}
+            <CreateEventModal
+                open={eventCreateModalOpen}
+                onClose={() => setEventCreateModalOpen(false)}
+                onCancel={() => setEventCreateModalOpen(false)}
+                onOk={() => setEventCreateModalOpen(false)}
+            />
+
+            <JoinEventModal
+                open={eventJoinModalOpen}
+                onClose={() => setEventJoinModalOpen(false)}
+                onCancel={() => setEventJoinModalOpen(false)}
+                onOk={() => setEventJoinModalOpen(false)}
             />
 
             <Flex className="flex-1 h-fullborder border-black ">
                 <BigButton
                     title="Create"
                     onClick={() => {
-                        setEventModalOpen(true);
+                        setEventCreateModalOpen(true);
                     }}
                 />
-                <BigButton title="Join" />
+                <BigButton
+                    title="Join"
+                    onClick={() => {
+                        setEventJoinModalOpen(true);
+                    }}
+                />
             </Flex>
         </>
     );
