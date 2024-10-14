@@ -1,4 +1,6 @@
 import './globals.css';
+import '@vidstack/react/player/styles/base.css';
+
 import type { Metadata } from 'next';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { Kanit, Roboto } from 'next/font/google';
@@ -27,7 +29,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <EventProvider>
-                <body className={`${kanit.className} ${roboto.className} antialiased`}>
+                <body className={`${kanit.className} ${roboto.className} antialiased bg-night`}>
                     <AntdRegistry>{children}</AntdRegistry>
                 </body>
             </EventProvider>

@@ -1,9 +1,19 @@
 export interface EventContextType {
     isReady: boolean;
-    createEvent: (eventName: string, participants: number) => Promise<{ code: string }>;
-    getEvent: (eventCode: string) => Promise<{ name: string; code: string }>;
-    collapseEvent: (eventCode: string) => Promise<void>;
-    joinEvent: (eventCode: string) => Promise<void>;
-    leaveEvent: (eventCode: string) => Promise<void>;
-    setState: (eventCode: string, state: 'waitng' | 'ready') => Promise<void>;
+    isHost: boolean;
+    getEventDetail: () => Promise<{
+        isHostJoin: boolean;
+        currentParticipants: number;
+        participants: {
+            role: 'host' | 'participant';
+            state: 'ready' | 'waiting';
+        }[];
+    }>;
+    joinAsHost: () => Promise<void>;
+    leaveAsHost: () => Promise<void>;
+    joinAsParticipant: () => Promise<void>;
+    leaveAsParticipant: () => Promise<void>;
+    setParticipantState: (state: 'waiting' | 'ready') => Promise<void>;
+    setHost: (ishost: boolean) => void;
+    isParticipant: () => Promise<boolean>;
 }

@@ -3,69 +3,72 @@
 import { createContext, useEffect, useState } from 'react';
 import { EventContextType } from './EventProvider.type';
 import { standbyIO } from '@/socket';
+import { useRouter } from 'next/navigation';
 
 export const EventContext = createContext<EventContextType>({} as EventContextType);
 
 export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isReady, setReady] = useState<boolean>(false);
+    const [isHost, setHost] = useState<boolean>(false);
 
-    const createEvent: EventContextType['createEvent'] = async (eventName, participants) => {
+    const joinAsHost: EventContextType['joinAsHost'] = async () => {
         return new Promise((resolve, reject) => {
-            standbyIO.emit('create_new_event', { eventName, participants }, (data: { code: string }) => {
-                resolve(data);
+            standbyIO.emit('join_as_host', (data: { isJoin: true } | { isJoin: false; reason: string }) => {
+                if (!data.isJoin) reject(data.reason);
+                resolve();
             });
         });
     };
 
-    const collapseEvent: EventContextType['collapseEvent'] = async eventCode => {
-        standbyIO.emit('collapse_event', { eventCode });
-    };
-
-    const getEvent: EventContextType['getEvent'] = async eventCode => {
+    const leaveAsHost: EventContextType['leaveAsHost'] = async () => {
         return new Promise((resolve, reject) => {
-            standbyIO.emit('get_event', { eventCode }, (data: { name: string; code: string } | { code: null }) => {
-                if (!data.code) return reject('No room found.');
-
-                resolve(data);
+            standbyIO.emit('leave_as_host', (data: { isLeave: true } | { isLeave: false; reason: string }) => {
+                if (!data.isLeave) reject(data.reason);
+                resolve();
             });
         });
     };
 
-    const joinEvent: EventContextType['joinEvent'] = async eventCode => {
+    const getEventDetail: EventContextType['getEventDetail'] = async () => {
         return new Promise((resolve, reject) => {
             standbyIO.emit(
-                'join_event',
-                { eventCode },
-                (data: { isJoin: true } | { isJoin: false; reason: string }) => {
-                    if (!data.isJoin) reject(data.reason);
-
-                    resolve();
+                'event_detail',
+                (data: {
+                    isHostJoin: boolean;
+                    currentParticipants: number;
+                    participants: { role: 'host' | 'participant'; state: 'waiting' | 'ready' }[];
+                }) => {
+                    resolve(data);
                 }
             );
         });
     };
 
-    const leaveEvent: EventContextType['leaveEvent'] = async eventCode => {
+    const joinAsParticipant: EventContextType['joinAsParticipant'] = async () => {
         return new Promise((resolve, reject) => {
-            standbyIO.emit(
-                'leave_event',
-                { eventCode },
-                (data: { isLeave: true } | { isLeave: false; reason: string }) => {
-                    if (!data.isLeave) reject(data.reason);
-
-                    resolve();
-                }
-            );
+            standbyIO.emit('join_as_participant', (data: { isJoin: true } | { isJoin: false; reason: string }) => {
+                if (!data.isJoin) reject(data.reason);
+                resolve();
+            });
         });
     };
 
-    const setState: EventContextType['setState'] = async (eventCode, state) => {
+    const leaveAsParticipant: EventContextType['leaveAsParticipant'] = async () => {
+        return new Promise((resolve, reject) => {
+            standbyIO.emit('leave_as_participant', (data: { isLeave: true } | { isLeave: false; reason: string }) => {
+                if (!data.isLeave) reject(data.reason);
+                resolve();
+            });
+        });
+    };
+
+    const setParticipantState: EventContextType['setParticipantState'] = async (state: 'waiting' | 'ready') => {
         return new Promise((resolve, reject) => {
             standbyIO.emit(
                 'participant_state',
-                { eventCode, state },
-                (data: { isReady: true } | { isReady: false; reason: string }) => {
-                    if (!data.isReady) reject(data.reason);
+                { state: state },
+                (data: { isSet: true } | { isSet: false; reason: string }) => {
+                    if (!data.isSet) reject(data.reason);
 
                     resolve();
                 }
@@ -73,17 +76,25 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         });
     };
 
-    const onEventReady = ({ isReady }: { isReady: boolean }) => {
-        return setReady(isReady);
+    const isParticipant: EventContextType['isParticipant'] = async () => {
+        return new Promise((resolve, reject) => {
+            standbyIO.emit('is_participant', (data: boolean) => {
+                resolve(data);
+            });
+        });
+    };
+
+    const onEventState = ({ state }: { state: 'ready' | 'waiting' }) => {
+        return setReady(state == 'ready');
     };
 
     useEffect(() => {
         standbyIO.connect();
 
-        standbyIO.on('event_ready', onEventReady);
+        standbyIO.on('event_state', onEventState);
 
         return () => {
-            standbyIO.off('event_ready', onEventReady);
+            standbyIO.off('event_state', onEventState);
             standbyIO.disconnect();
         };
     }, []);
@@ -92,12 +103,15 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         <EventContext.Provider
             value={{
                 isReady,
-                collapseEvent,
-                leaveEvent,
-                getEvent,
-                joinEvent,
-                createEvent,
-                setState,
+                setHost,
+                isHost,
+                getEventDetail,
+                joinAsHost,
+                leaveAsHost,
+                joinAsParticipant,
+                leaveAsParticipant,
+                setParticipantState,
+                isParticipant,
             }}
         >
             {children}

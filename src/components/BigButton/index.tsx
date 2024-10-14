@@ -1,18 +1,29 @@
 'use client';
 
-import { Flex } from 'antd';
+import { Flex, Image } from 'antd';
 import Title from 'antd/es/typography/Title';
 import { MouseEventHandler } from 'react';
 
-const BigButton: React.FC<{ title: string; onClick?: MouseEventHandler<HTMLElement> }> = ({ title, onClick }) => {
+const BigButton: React.FC<{ title: string; onClick?: MouseEventHandler<HTMLElement>; disable?: boolean }> = ({
+    title,
+    onClick,
+    disable = false,
+}) => {
+    const defaultButtonStyle = 'flex-1 w-full h-full rounded-xl border-[8px] border-eerie-black';
+    const enableButtonStyle = ' cursor-pointer hover:bg-eerie-black';
+    const disableButtonStyle = 'cursor-not-allowed bg-night';
+
+    const disableTitleStyle = 'text-slate-400';
+    const enableTitleStyle = 'text-white';
+
     return (
         <Flex
             justify="center"
             align="center"
-            className="size-32 rounded-md border cursor-pointer"
+            className={`${defaultButtonStyle} ${disable === true ? disableButtonStyle : enableButtonStyle}`}
             onClick={onClick}
         >
-            <Title>{title}</Title>
+            <Title className={`${disable === true ? disableTitleStyle : enableTitleStyle}`}>{title}</Title>
         </Flex>
     );
 };
